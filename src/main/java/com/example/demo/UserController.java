@@ -4,24 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.sql.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    //private final UserRepository userRepository;
-    //private final UserMapper userMapper;
-    private final UserService userService;
 
-//    @Autowired
-//    public UserController(UserRepository userRepository, UserMapper userMapper) {
-//        this.userRepository = userRepository;
-//        this.userMapper = userMapper;
-//    }
+    private final UserService userService;
+    @Autowired
+    private KafkaMessagingService kafkaMessagingService;
+
+
 
     @Autowired
     public UserController(UserService userService){
@@ -29,13 +24,6 @@ public class UserController {
     }
 
 
-
-//    @GetMapping
-//    List<UserDto> getAllUsers() {
-//        return userRepository.findAll().stream()
-//                .map(userMapper::mapToUserDto)
-//                .collect(Collectors.toList());
-//    }
 
     @GetMapping
     List<UserDto> getAllUsers(){
@@ -51,12 +39,16 @@ public class UserController {
 
     @PostMapping()
     UserDto saveUser(@RequestBody UserDto userDto) {
-        return userService.saveUser(userDto);
+        UserDto  userDto1=userService.saveUser(userDto);
+        kafkaMessagingService.sendMessage("save-user","save "+userDto1.getEmail());
+        return userDto1;
     }
 
     @DeleteMapping("/{id}")
     void deleteUserById(@PathVariable int id) {
+        UserDto userDto =userService.getUserById(id);
         userService.deleteUserById(id);
+        kafkaMessagingService.sendMessage("delete-user","delete "+userDto.getEmail());
     }
 
     @PutMapping("/{id}")
