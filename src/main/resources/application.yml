@@ -1,6 +1,8 @@
-#spring:
-#  application:
-#    name: demo
+spring:
+  application:
+    name: demo
+  config:
+    import: configserver:http://localhost:8888
 #  datasource:
 #    platform: mysql
 #    url: jdbc:postgresql://localhost:5432/mydb
